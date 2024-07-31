@@ -4,9 +4,11 @@ import { LandingPageComponent } from './components/landing-page/landing-page.com
 import {
   SingleFaceSnapComponent
 } from "./components/single-face-snap/single-face-snap.component";
+import {ObservableComponent} from "./observable/observable.component";
 
 export const routes: Routes = [
     { path: 'facesnaps/:id', component: SingleFaceSnapComponent },
     { path: 'facesnaps', component: FaceSnapListComponent },
+    { path: 'observable', component: ObservableComponent },
     { path: '', component: LandingPageComponent }
   ];
