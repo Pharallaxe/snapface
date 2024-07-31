@@ -1,27 +1,120 @@
 # Snapface
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.8.
+```TypeScript
+import { Component } from '@angular/core';
+import { of, merge } from 'rxjs';
+import { mergeMap, concatMap, exhaustMap, switchMap, delay } from 'rxjs/operators';
 
-## Development server
+@Component({
+  selector: 'app-root',
+  template: `
+    <button (click)="runMergeMapSource1()">MergeMap Source 1</button>
+    <button (click)="runMergeMapSource2()">MergeMap Source 2</button>
+    <button (click)="runConcatMapSource1()">ConcatMap Source 1</button>
+    <button (click)="runConcatMapSource2()">ConcatMap Source 2</button>
+    <button (click)="runExhaustMapSource1()">ExhaustMap Source 1</button>
+    <button (click)="runExhaustMapSource2()">ExhaustMap Source 2</button>
+    <button (click)="runSwitchMapSource1()">SwitchMap Source 1</button>
+    <button (click)="runSwitchMapSource2()">SwitchMap Source 2</button>
+  `
+})
+export class AppComponent {
+  private simulateHttp(id: number, source: string) {
+    return of(`Résultat ${id} de ${source}`).pipe(delay(1000 * id));
+  }
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+  runMergeMapSource1() {
+    of(1, 2, 3).pipe(
+      mergeMap(id => this.simulateHttp(id, 'Source 1'))
+    ).subscribe(result => console.log('MergeMap:', result));
+  }
 
-## Code scaffolding
+  runMergeMapSource2() {
+    of(1, 2, 3).pipe(
+      mergeMap(id => this.simulateHttp(id, 'Source 2'))
+    ).subscribe(result => console.log('MergeMap:', result));
+  }
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+  runConcatMapSource1() {
+    of(1, 2, 3).pipe(
+      concatMap(id => this.simulateHttp(id, 'Source 1'))
+    ).subscribe(result => console.log('ConcatMap:', result));
+  }
 
-## Build
+  runConcatMapSource2() {
+    of(1, 2, 3).pipe(
+      concatMap(id => this.simulateHttp(id, 'Source 2'))
+    ).subscribe(result => console.log('ConcatMap:', result));
+  }
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+  runExhaustMapSource1() {
+    of(1, 2, 3).pipe(
+      exhaustMap(id => this.simulateHttp(id, 'Source 1'))
+    ).subscribe(result => console.log('ExhaustMap:', result));
+  }
 
-## Running unit tests
+  runExhaustMapSource2() {
+    of(1, 2, 3).pipe(
+      exhaustMap(id => this.simulateHttp(id, 'Source 2'))
+    ).subscribe(result => console.log('ExhaustMap:', result));
+  }
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+  runSwitchMapSource1() {
+    of(1, 2, 3).pipe(
+      switchMap(id => this.simulateHttp(id, 'Source 1'))
+    ).subscribe(result => console.log('SwitchMap:', result));
+  }
 
-## Running end-to-end tests
+  runSwitchMapSource2() {
+    of(1, 2, 3).pipe(
+      switchMap(id => this.simulateHttp(id, 'Source 2'))
+    ).subscribe(result => console.log('SwitchMap:', result));
+  }
+}
+```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Résultats Attendus
 
-## Further help
+### mergeMap:
+Si vous cliquez sur les boutons "MergeMap Source 1" et "MergeMap Source 2" presque simultanément :
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```text
+MergeMap: Résultat 1 de Source 1
+MergeMap: Résultat 1 de Source 2
+MergeMap: Résultat 2 de Source 1
+MergeMap: Résultat 2 de Source 2
+MergeMap: Résultat 3 de Source 1
+MergeMap: Résultat 3 de Source 2
+```
+- Explication : mergeMap traite toutes les requêtes en parallèle, indépendamment de la source.
+
+### concatMap:
+Si vous cliquez sur les boutons "ConcatMap Source 1" et "ConcatMap Source 2" presque simultanément :
+text
+```text
+ConcatMap: Résultat 1 de Source 1
+ConcatMap: Résultat 2 de Source 1
+ConcatMap: Résultat 3 de Source 1
+ConcatMap: Résultat 1 de Source 2
+ConcatMap: Résultat 2 de Source 2
+ConcatMap: Résultat 3 de Source 2
+```
+
+- Explication : concatMap traite les requêtes en séquence pour chaque source indépendamment.
+
+### exhaustMap:
+Si vous cliquez sur les boutons "ExhaustMap Source 1" et "ExhaustMap Source 2" presque simultanément :
+
+```text
+ExhaustMap: Résultat 1 de Source 1
+```
+
+- Explication : exhaustMap ignore les nouvelles émissions tant que la requête en cours n'est pas terminée. Seule la première requête de la première source est traitée.
+
+### switchMap:
+Si vous cliquez sur les boutons "SwitchMap Source 1" et "SwitchMap Source 2" presque simultanément :
+
+```text
+SwitchMap: Résultat 3 de Source 2
+```
+- Explication : switchMap annule la requête en cours chaque fois qu'une nouvelle émission arrive. Seule la dernière requête de la dernière source est complétée.
